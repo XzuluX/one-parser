@@ -1,0 +1,385 @@
+import System
+import System.Collections.Generic
+
+
+namespace ONE.Test.DeclarationPattern:
+
+    public class Test:
+
+        public:
+
+            static Test1():
+
+                greeting object = "Hello, World!"
+                if greeting is message string:
+                    Console.WriteLine(message.ToLower())  // output: hello, world!
+
+            static Test2():
+
+                numbers var = new int[] { 10, 20, 30 }
+                Console.WriteLine(GetSourceLabel(numbers))  // output: 1
+
+                letters var = new List<char> { 'a', 'b', 'c', 'd' }
+                Console.WriteLine(GetSourceLabel(letters))  // output: 2
+
+            static Test3():
+
+                xNullable int? = 7
+                y int = 23
+                yBoxed object = y
+
+                if xNullable is a int && yBoxed is b int:
+                    Console.WriteLine(a + b)  // output: 30
+
+        private static GetSourceLabel<T>(source IEnumerable<T>) int
+
+            => source switch:
+                array System.Array  => 1,
+                collection ICollection<T> => 2,
+                _ => 3,
+
+
+namespace ONE.Test.TypePattern:
+
+    public:
+
+        abstract class Vehicle:;
+        class Car <-- Vehicle:;
+        class Truck <-- Vehicle:;
+
+    public static class Test:
+
+        public:
+
+            static Test1():
+
+                Console.WriteLine($"Truck toll: {CalculateToll(new Truck())}")
+                Console.WriteLine($"Car   toll: {CalculateToll(new Car())}")
+                Console.WriteLine($"Truck toll: {CalculateTollWithTypePattern(new Truck())}")
+                Console.WriteLine($"Car   toll: {CalculateTollWithTypePattern(new Car())}")
+
+            static Test2():
+
+                car Car = null
+                // type testing
+                if car is not null: Console.WriteLine(car)
+                else: throw new ArgumentNullException(paramName: nameof(car),
+                    message: 'Car should not be null')
+
+        private:
+
+            static CalculateToll(this vehicle Vehicle) decimal
+                => vehicle switch: // use a discard _ to check only the type of an expression in place of a variable's name:
+                    _ Car => 2.00m,
+                    _ Truck => 7.50m,
+                    null => throw new ArgumentNullException(nameof(vehicle)),
+                    _ => throw new ArgumentException('Unknown type of a vehicle', nameof(vehicle)),
+
+            static CalculateTollWithTypePattern(this vehicle Vehicle) decimal
+                => vehicle switch: // with C# 9.0, for that purpose type pattern is used:
+                    Car => 2.00m,
+                    Truck => 7.50m,
+                    null => throw new ArgumentNullException(nameof(vehicle)),
+                    _ => throw new ArgumentException('Unknown type of a vehicle', nameof(vehicle)),
+
+
+namespace Test.ConstantPattern:
+
+    public class Test:
+
+        public:
+
+            static Test1():
+
+                Console.WriteLine(GetGroupTicketPrice(3))  // output: 27.0
+
+        private static GetGroupTicketPrice(visitorCount int) decimal
+
+            => visitorCount switch:
+                1 => 12.0m,
+                2 => 20.0m,
+                3 => 27.0m,
+                4 => 32.0m,
+                0 => 0.0m,
+                _ => throw new ArgumentException($"Not supported number of visitors:{visitorCount}", nameof(visitorCount))
+
+
+namespace ONE.Test.RelationalPattern:
+
+    public class Test:
+
+        public:
+
+            static Test1():
+
+                Console.WriteLine(Classify(13))  // output: Too high
+                Console.WriteLine(Classify(double.NaN))  // output: Unknown
+                Console.WriteLine(Classify(2.4))  // output: Acceptable
+
+        private static Classify(measurement double) string
+
+            => measurement switch:
+                < -4.0 => "Too low",
+                > 10.0 => "Too high",
+                double.NaN => "Unknown",
+                _ => "Acceptable",
+
+
+namespace ONE.Test.LogicalPattern:
+
+    public class App:
+
+        public static Run():
+
+            Console.WriteLine(Classify(13))    // output: High
+            Console.WriteLine(Classify(-100))  // output: Too low
+            Console.WriteLine(Classify(5.7))   // output: Acceptable
+
+            Console.WriteLine(GetCalendarSeason(new DateTime(2021, 1, 19)))  // output: winter
+            Console.WriteLine(GetCalendarSeason(new DateTime(2021, 10, 9)))  // output: autumn
+            Console.WriteLine(GetCalendarSeason(new DateTime(2021, 5, 11)))  // output: spring
+
+        private:
+
+            static Classify(measurement double) string
+
+                => measurement switch:
+                < -40.0 => "Too low",
+                >= -40.0 and < 0 => "Low",
+                >= 0 and < 10.0 => "Acceptable",
+                >= 10.0 and < 20.0 => "High",
+                >= 20.0 => "Too high",
+                double.NaN => "Unknown",
+
+            static GetCalendarSeason(date DateTime) string
+
+                => date.Month switch:
+                3 or 4 or 5 => "spring",
+                6 or 7 or 8 => "summer",
+                9 or 10 or 11 => "autumn",
+                12 or 1 or 2 => "winter",
+                _ => throw new ArgumentOutOfRangeException(nameof(date),
+                    $"Date with unexpected month: {date.Month}."),
+
+
+namespace ONE.Test.PropertyPattern:
+
+    import System.Linq
+
+    public:
+
+        record User(FName string, LName string, Age int)
+        record Point(X int, Y int)
+        record Segment(Start Point, End Point)
+
+    public class App:
+
+        public:
+
+            Test1():
+
+                user User =  new ("John", "Doe", 34)
+                s string = user switch:
+                    { LName: "Doe" } => "Doe family",
+                    { Age: age var } when age < 18 => "minor person",
+                    _ => $"{user}"
+
+                Console.WriteLine(s)
+
+            Test2():
+
+                Console.WriteLine(IsConferenceDay(new DateTime(2020, 5, 20))) // true
+
+                Console.WriteLine(TakeFive("Hello, world!"))  // output: Hello
+                Console.WriteLine(TakeFive("Hi!"))  // output: Hi!
+                Console.WriteLine(TakeFive(new[] { '1', '2', '3', '4', '5', '6', '7' }))  // output: 12345
+                Console.WriteLine(TakeFive(new[] { 'a', 'b', 'c' }))  // output: abc
+
+                Console.WriteLine(IsAnyEndOnXAxis(new Segment(new Point(0, 5), new Point(1, 0)))) // true
+
+        private:
+
+            static IsConferenceDay(date DateTime) bool
+
+                => date is { Year: 2020, Month: 5, Day: 19 or 20 or 21 }
+
+            static TakeFive(inputObject object) string
+
+                => inputObject switch:
+                s { Length: >= 5 } string => s.Substring(0, 5),
+                s string => s,
+
+                symbols { Count: >= 5 } ICollection<char> => new string(symbols.Take(5).ToArray()),
+                symbols ICollection<char> => new string(symbols.ToArray()),
+
+                null => throw new ArgumentNullException(nameof(inputObject)),
+                _ => throw new ArgumentException("Not supported input type."),
+
+            // nested pattern
+            static IsAnyEndOnXAxis (segment Segment) bool
+
+                => segment is { Start: { Y: 0 } } or { End: { Y: 0 } }
+
+
+namespace ONE.Test.PositionalPattern:
+
+    public:
+
+        record Point2D(X int, Y int)
+        record Point3D(X int, Y int, Z int)
+
+        readonly struct Point:
+
+            public:
+
+                X int: get
+                Y int: get
+
+                Point(x int, y int) => (X, Y) = (x, y)
+                Deconstruct(out x int, out y int) => (x, y) = (X, Y)
+
+    public class App:
+
+        public:
+
+            static Test1():
+                Console.WriteLine(Classify(new Point(1, 0))) // "positive X basis end"
+                Console.WriteLine(GetGroupTicketPriceDiscount(5, new DateTime(2022, 9, 26))) // 20.0
+
+            static Test2():
+                numbers var = new List<int> { 1, 2, 3 }
+                if SumAndCount(numbers) is (Sum: sum var, Count: > 0):
+                    Console.WriteLine($"Sum of [{string.Join(" ", numbers)}] is {sum}");  // output: Sum of [1 2 3] is 6
+
+            static Test3():
+                Console.WriteLine(PrintIfAllCoordinatesArePositive(new Point2D(1, 0)))
+                Console.WriteLine(PrintIfAllCoordinatesArePositive(new Point3D(1, 3, 5))) // Point3D { X = 1, Y = 3, Z = 5 }
+
+        private:
+
+            static Classify(point Point) string
+
+                => point switch:
+                    (0, 0) => "Origin",
+                    (1, 0) => "positive X basis end",
+                    (0, 1) => "positive Y basis end",
+                    _ => "Just a point"
+
+            static GetGroupTicketPriceDiscount(groupSize int, visitDate DateTime) decimal
+
+                => (groupSize, visitDate.DayOfWeek) switch:
+                    (<= 0, _) => throw new ArgumentException("Group size must be positive."),
+                    (_, DayOfWeek.Saturday or DayOfWeek.Sunday) => 0.0m,
+                    (>= 5 and < 10, DayOfWeek.Monday) => 20.0m,
+                    (>= 10, DayOfWeek.Monday) => 30.0m,
+                    (>= 5 and < 10, _) => 12.0m,
+                    (>= 10, _) => 15.0m,
+                    _ => 0.0m,
+
+            static SumAndCount(numbers IEnumerable<int>) (Sum double, Count int):
+
+                sum, count int = 0, 0
+                foreach number int in numbers:
+                    sum += number
+                    count++
+
+                return (sum, count)
+
+            static PrintIfAllCoordinatesArePositive(point object) string
+
+                => point switch:
+                p (> 0, > 0) Point2D => p.ToString(),
+                p (> 0, > 0, > 0) Point3D => p.ToString(),
+                _ => string.Empty,
+
+
+namespace ONE.Test.VarPattern:
+
+    public record Point(X int, Y int)
+
+    public class App:
+
+        public static Run():
+
+            Console.WriteLine(Transform(new Point(1, 2)))  // output: Point { X = -1, Y = 2 }
+            Console.WriteLine(Transform(new Point(5, 2)))  // output: Point { X = 5, Y = -2 }
+
+        private static Transform(point Point) Point
+
+            => point switch:
+                (x, y) var when x < y => new Point(-x, y),
+                (x, y) var when x > y => new Point(x, -y),
+                (x, y) var => new Point(x, y)
+
+
+namespace ONE.Test.Array:
+
+    class Test:
+
+        TestArray():
+
+            // Array declaration
+            o int[] = new int[5]
+            o[0] = 1
+
+            // Array allocation
+            x int[] = new int[3]
+
+            // Array assignment
+            x[0] = 1
+            x[1] = 2
+            x[2] = 3
+
+            y int[] = new int[] { 1, 2, 3, 6 }
+
+            z int[] = { 1, 2, 3 }
+
+            Console.Write(x[0] + x[1] + x[2])
+
+            a string[,] = new string[2,2]
+
+            a[0, 0] = '00'; a[0, 1] = '01'
+            a[1, 0] = '10'; a[1, 1] = '11'
+
+            b string[,] = { { '00', '01' }, { '10', '11' } }
+
+            c string[][] = new string[2][]
+
+            c[0] = new string[1]; c[0][0] = '00'
+            c[1] = new string[2]; c[1][0] = '10'; c[1][1] = '11'
+
+            d string[][] = { new string[] { '00', '01' }, new string[] { '10', '11' } }
+
+            xs var = new[] { 4, 7, 9 }
+            bs var = new[] { "hello", null, "world" }
+
+            x2 var = new[,]     { { 4, 7 }, { 10, 11 } }
+            x4 var = new[,,]    { { { 1, 2, 3 }, { 4, 5, 6 } },
+                                { { 7, 8, 9 }, { 10, 11, 12 } } }
+
+            array var = new int[] { 1, 2, 3, 4, 5 }
+            slice1 var = array[2..^3]    // array[new Range(2, new Index(3, fromEnd: true))]
+            slice2 var = array[..^3]     // array[Range.EndAt(new Index(3, fromEnd: true))]
+            slice3 var = array[2..]      // array[Range.StartAt(2)]
+            slice4 var = array[..]       // array[Range.All]
+
+            // stackalloc
+            storage Span<int> = stackalloc int[10]
+            storage = stackalloc[] { 1, 2, 3, 4, 5, 6 }
+
+
+        TestCollectionExpression():
+
+            array int[] = [ 1, 2, 3, 4, 5, 6 ]
+
+            b List<string> = ["one", "two", "three"]
+
+            c Span<char> = ['a', 'b', 'c', 'd', 'e', 'f', 'h', 'i']
+
+            row0 int[] = [1, 2, 3, 4, 5]
+            row1 int[] = [10, 3, 8, 7, 0]
+            row2 int[] = [0, -5, 1, 9, 10]
+
+            array1 int[] = [.. row0, .. row1, .. row2]
+
+            twoD int[][] = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]

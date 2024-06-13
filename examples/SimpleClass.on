@@ -1,0 +1,28 @@
+namespace DemoNamespace:
+
+    import System
+    import System.Collections.Generic
+
+    class SimpleClass:
+
+        private readonly:
+
+            _identifier string = "ONE"
+            _numbers List<int> = []
+
+        public:
+
+            SimpleClass(identifier string, numbers List<int>):
+
+                _identifier = identifier
+                _numbers = numbers
+
+            Print():
+
+                Console.WriteLine($"Identifier: {_identifier}")
+
+                index int = 0
+                foreach number var in _numbers:
+
+                    index++
+                    Console.WriteLine($"{index}. number: {number}")
