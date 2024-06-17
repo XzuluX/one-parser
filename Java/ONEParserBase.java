@@ -29,6 +29,12 @@ public abstract class ONEParserBase extends Parser
         return false;
     }
 
+    @Override
+    public void reset()
+    {
+        super.reset(); // Is there anything else that should be done here ?
+    }
+
     protected boolean IsDeclaration()
     {
         boolean isDeclaration = true;

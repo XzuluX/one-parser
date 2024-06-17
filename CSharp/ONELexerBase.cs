@@ -374,6 +374,38 @@ public abstract class ONELexerBase : Lexer
         return dedent;
     }
 
+    public override void Reset()
+    {
+        base.Reset();
+        ResetFields();
+    }
+
+    private void ResetFields()
+    {
+        interpolatedStringLevel = 0;
+        interpolatedVerbatims.Clear();
+        curlyLevels.Clear();
+        verbatim = false;
+
+        tokens.Clear();
+        indents.Clear();
+        opened = 0;
+        lastToken = null;
+        BlockIndents.Clear();
+        functionBlockWasEntered = false;
+        stateMachineWasEntered = false;
+        functionBlockIndentation = -1;
+        stateMachineIndentation = -1;
+        insideFunctionBlockFlag = false;
+        insideStateMachineFlag = false;
+        NumberOfRawStringStartQuotes = 0;
+        NumberOfRawStringDollarSigns = 0;
+        CalculateRawBraceCount = true;
+        NumberOfOpenRawStringBraces = 0;
+        CheckInterpolation = false;
+        NumberOfStartingBraces = 0;
+    }
+
     private CommonToken commonToken(int type, String text)
     {
         int stop = this.CharIndex - 1;

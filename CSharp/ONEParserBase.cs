@@ -32,6 +32,11 @@ public abstract class ONEParserBase : Parser
         return false;
     }
 
+    public override void Reset()
+    {
+        base.Reset(); // Is there anything else that should be done here ?
+    }
+
     protected bool IsDeclaration()
     {
         bool isDeclaration = true;
