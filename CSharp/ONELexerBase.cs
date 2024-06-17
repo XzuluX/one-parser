@@ -1,21 +1,18 @@
 
 using Antlr4.Runtime;
-using System.Collections.Generic;
-using System;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 
-public abstract class ONELexerBase : Lexer {
+public abstract class ONELexerBase : Lexer
+{
 
-	public ONELexerBase(ICharStream input)
-			: base(input)
-	{
-	}
-	public ONELexerBase(ICharStream input, TextWriter output, TextWriter errorOutput)
-			: base(input, output, errorOutput)
-	{
-	}
+    public ONELexerBase(ICharStream input)
+            : base(input)
+    {
+    }
+    public ONELexerBase(ICharStream input, TextWriter output, TextWriter errorOutput)
+            : base(input, output, errorOutput)
+    {
+    }
 
 
     protected int interpolatedStringLevel;
@@ -42,7 +39,7 @@ public abstract class ONELexerBase : Lexer {
     // Flag if lexer parses inside functionblock / statemachine
     private bool insideFunctionBlockFlag = false;
     private bool insideStateMachineFlag = false;
-     // The starting number of double quotes for raw string literal
+    // The starting number of double quotes for raw string literal
     private int NumberOfRawStringStartQuotes = 0;
     // The number of dollar signs for raw string literal
     private int NumberOfRawStringDollarSigns = 0;
@@ -219,7 +216,7 @@ public abstract class ONELexerBase : Lexer {
             {
                 if (NumberOfRawStringDollarSigns > 0)
                     interpolatedStringLevel--;
-                
+
                 NumberOfRawStringDollarSigns = 0;
                 NumberOfRawStringStartQuotes = 0;
                 isRawStringLiteralEnd = true;
@@ -294,7 +291,7 @@ public abstract class ONELexerBase : Lexer {
     {
         List<char> characters = new List<char>();
         int i = 1;
-        
+
         do
         {
             char currentChar = (char)InputStream.LA(i);
@@ -302,31 +299,36 @@ public abstract class ONELexerBase : Lexer {
                 characters.Add(currentChar);
             i++;
 
-        } while ((char)InputStream.LA(i - 1) != '\r' && (char)InputStream.LA(i) != '\n' && characters.Count < 2 );
+        } while ((char)InputStream.LA(i - 1) != '\r' && (char)InputStream.LA(i) != '\n' && characters.Count < 2);
 
         char firstChar = characters[0];
         bool isOperator;
-        
+
         if (firstChar == '(')
             isOperator = characters.Count <= 1 || characters[1] != ')';
         else
-            isOperator = !(firstChar == '\r' || firstChar == '=' || firstChar == '[' 
+            isOperator = !(firstChar == '\r' || firstChar == '=' || firstChar == '['
                 || firstChar == '{' || firstChar == ',' || firstChar == ')');
 
         return isOperator;
     }
 
-    public override void Emit(IToken t) {
+    public override void Emit(IToken t)
+    {
         base.Token = t;
         tokens.Add(t);
     }
 
-    public override IToken NextToken() {
+    public override IToken NextToken()
+    {
         // Check if the end-of-file is ahead and there are still some DEDENTS expected.
-        if (InputStream.LA(1) == Eof && this.indents.Count != 0) {
+        if (InputStream.LA(1) == Eof && this.indents.Count != 0)
+        {
             // Remove any trailing EOF tokens from our buffer.
-            for (int i = tokens.Count - 1; i >= 0; i--) {
-                if (tokens[i].Type == Eof) {
+            for (int i = tokens.Count - 1; i >= 0; i--)
+            {
+                if (tokens[i].Type == Eof)
+                {
                     tokens.RemoveAt(i);
                 }
             }
@@ -335,7 +337,8 @@ public abstract class ONELexerBase : Lexer {
             this.Emit(commonToken(ONELexer.NEWLINE, "\n"));
 
             // Now emit as much DEDENT tokens as needed.
-            while (indents.Any()) {
+            while (indents.Any())
+            {
                 this.Emit(createDedent());
                 indents.Pop();
             }
@@ -346,7 +349,8 @@ public abstract class ONELexerBase : Lexer {
 
         var next = base.NextToken();
 
-        if (next.Channel == DefaultTokenChannel) {
+        if (next.Channel == DefaultTokenChannel)
+        {
             // Keep track of the last token on the default channel.
             this.lastToken = next;
         }
@@ -363,13 +367,47 @@ public abstract class ONELexerBase : Lexer {
         }
     }
 
-    private IToken createDedent() {
+    private IToken createDedent()
+    {
         CommonToken dedent = commonToken(ONELexer.DEDENT, "");
         dedent.Line = this.lastToken.Line;
         return dedent;
     }
 
-    private CommonToken commonToken(int type, String text) {
+    public override void Reset()
+    {
+        base.Reset();
+        ResetFields();
+    }
+
+    private void ResetFields()
+    {
+        interpolatedStringLevel = 0;
+        interpolatedVerbatims.Clear();
+        curlyLevels.Clear();
+        verbatim = false;
+
+        tokens.Clear();
+        indents.Clear();
+        opened = 0;
+        lastToken = null;
+        BlockIndents.Clear();
+        functionBlockWasEntered = false;
+        stateMachineWasEntered = false;
+        functionBlockIndentation = -1;
+        stateMachineIndentation = -1;
+        insideFunctionBlockFlag = false;
+        insideStateMachineFlag = false;
+        NumberOfRawStringStartQuotes = 0;
+        NumberOfRawStringDollarSigns = 0;
+        CalculateRawBraceCount = true;
+        NumberOfOpenRawStringBraces = 0;
+        CheckInterpolation = false;
+        NumberOfStartingBraces = 0;
+    }
+
+    private CommonToken commonToken(int type, String text)
+    {
         int stop = this.CharIndex - 1;
         int start = text.Length == 0 ? stop : stop - text.Length + 1;
         return new CommonToken(Tuple.Create((ITokenSource)this, (ICharStream)InputStream), type, DefaultTokenChannel, start, stop);
@@ -383,28 +421,34 @@ public abstract class ONELexerBase : Lexer {
     //  the replacement is a multiple of eight [...]"
     //
     //  -- https://docs.python.org/3.1/reference/lexical_analysis.html#indentation
-    static int getIndentationCount(String spaces) {
+    static int getIndentationCount(String spaces)
+    {
         int count = 0;
-        foreach (char ch in spaces) {
+        foreach (char ch in spaces)
+        {
             count += ch == '\t' ? 8 - (count % 8) : 1;
         }
 
         return count;
     }
 
-    public bool AtStartOfInput() {
+    public bool AtStartOfInput()
+    {
         return Column == 0 && Line == 1;
     }
 
-    public void OnOpenBrace(){
+    public void OnOpenBrace()
+    {
         this.opened++;
     }
 
-    public void OnCloseBrace(){
+    public void OnCloseBrace()
+    {
         this.opened--;
     }
 
-    public void OnNewLine(){
+    public void OnNewLine()
+    {
         var newLine = (new Regex("[^\r\n\f]+")).Replace(Text, "");
         var spaces = (new Regex("[\r\n\f]+")).Replace(Text, "");
 
@@ -414,17 +458,19 @@ public abstract class ONELexerBase : Lexer {
         int nextnext = ((ICharStream)InputStream).LA(2);
         int nextnextnext = ((ICharStream)InputStream).LA(3);
 
-        if (opened > 0 || (nextnext != -1 && (next == '\r' || next == '\n' || next == '\f' || next == '#' 
-            || (next == '/' && nextnext == '/') || (next == '-' && nextnext == '-' && nextnextnext == '-')))) {
+        if (opened > 0 || (nextnext != -1 && (next == '\r' || next == '\n' || next == '\f' || next == '#'
+            || (next == '/' && nextnext == '/') || (next == '-' && nextnext == '-' && nextnextnext == '-'))))
+        {
             // If we're inside a list or on a blank line, ignore all indents,
             // dedents and line breaks.
             Skip();
         }
-        else {
+        else
+        {
             UpdateInsideFunctionBlockFlag(spaces);
             UpdateInsideStateMachineFlag(spaces);
 
-            
+
             int indent = getIndentationCount(spaces);
             if (lastToken != null && (lastToken.Type == ONEParser.COLON || (next == '.' && nextnext == '.' && nextnextnext != '.'))) // cascading operator
                 BlockIndents.Push(indent);
@@ -436,13 +482,14 @@ public abstract class ONELexerBase : Lexer {
                     Skip();
                     return;
                 }
-                else if(indent < currentBlockIndent)
+                else if (indent < currentBlockIndent)
                 {
                     LinkedList<int> blockIndentsList = new LinkedList<int>();
                     Stack<int> copiedBlockIndents = new Stack<int>();
                     foreach (int BlockIndents in BlockIndents)
                         copiedBlockIndents.Push(BlockIndents);
-                    while(copiedBlockIndents.Any()) { 
+                    while (copiedBlockIndents.Any())
+                    {
                         blockIndentsList.AddLast(copiedBlockIndents.Pop());
                     }
 
@@ -450,9 +497,9 @@ public abstract class ONELexerBase : Lexer {
                     blockIndentsList.AddLast(0);
                     bool indentMatch = false;
 
-                    
+
                     foreach (int blockIndent in blockIndentsList)
-                    { 
+                    {
                         if (indent == blockIndent)
                         {
                             indentMatch = true;
@@ -464,25 +511,30 @@ public abstract class ONELexerBase : Lexer {
                         NotifyListeners(new LexerNoViableAltException(this, (ICharStream)InputStream, Line + 1, null));
                 }
             }
-            
+
             Emit(commonToken(ONELexer.NEWLINE, newLine));
             int previous = (!indents.Any()) ? 0 : indents.Peek();
-            if (indent == previous) {
+            if (indent == previous)
+            {
                 // skip indents of the same size as the present indent-size
                 Skip();
             }
-            else if (indent > previous) {
+            else if (indent > previous)
+            {
                 indents.Push(indent);
                 Emit(commonToken(ONELexer.INDENT, spaces));
             }
-            else {
+            else
+            {
                 // Possibly emit more than 1 DEDENT token.
-                while(indents.Any() && indents.Peek() > indent) {
+                while (indents.Any() && indents.Peek() > indent)
+                {
                     this.Emit(createDedent());
                     indents.Pop();
                 }
 
-                while(BlockIndents.Any() && BlockIndents.Peek() > indent) {
+                while (BlockIndents.Any() && BlockIndents.Peek() > indent)
+                {
                     BlockIndents.Pop();
                 }
             }

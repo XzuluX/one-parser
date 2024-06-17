@@ -353,6 +353,39 @@ abstract class ONELexerBase extends Lexer {
         return dedent;
     }
 
+    @Override
+    public void reset()
+    {
+        super.reset();
+        resetFields();
+    }
+
+    private void resetFields()
+    {
+        interpolatedStringLevel = 0;
+        interpolatedVerbatims.clear();
+        curlyLevels.clear();
+        verbatim = false;
+
+        tokens.clear();
+        indents.clear();
+        opened = 0;
+        lastToken = null;
+        BlockIndents.clear();
+        functionBlockWasEntered = false;
+        stateMachineWasEntered = false;
+        functionBlockIndentation = -1;
+        stateMachineIndentation = -1;
+        insideFunctionBlockFlag = false;
+        insideStateMachineFlag = false;
+        NumberOfRawStringStartQuotes = 0;
+        NumberOfRawStringDollarSigns = 0;
+        CalculateRawBraceCount = true;
+        NumberOfOpenRawStringBraces = 0;
+        CheckInterpolation = false;
+        NumberOfStartingBraces = 0;
+    }
+
     private CommonToken commonToken(int type, String text) {
         int stop = this.getCharIndex() - 1;
         int start = text.isEmpty() ? stop : stop - text.length() + 1;

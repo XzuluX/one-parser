@@ -1,10 +1,5 @@
 
 using Antlr4.Runtime;
-using System.Collections.Generic;
-using System;
-using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 
 public abstract class ONEParserBase : Parser
@@ -20,171 +15,176 @@ public abstract class ONEParserBase : Parser
     }
 
     protected bool IsGlobalStatement()
-	{
-		if (this.Context is ONEParser.Member_declarationContext && this.Context.Parent is ONEParser.Compilation_unitContext)
-		{       
-	    //System.out.print(" [isGlobalStatement: " + isGlobalStatement + "] ");
-	    //System.out.println();
-			return true;
-		}
-		else if (this.Context is ONEParser.Compilation_unitContext)
-		{
-	    //System.out.print(" [isGlobalStatement: " + isGlobalStatement + "] ");
-	    //System.out.println();
-			return true;
-		}
+    {
+        if (this.Context is ONEParser.Member_declarationContext && this.Context.Parent is ONEParser.Compilation_unitContext)
+        {
+            //System.out.print(" [isGlobalStatement: " + isGlobalStatement + "] ");
+            //System.out.println();
+            return true;
+        }
+        else if (this.Context is ONEParser.Compilation_unitContext)
+        {
+            //System.out.print(" [isGlobalStatement: " + isGlobalStatement + "] ");
+            //System.out.println();
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	protected bool IsDeclaration()
-	{
+    public override void Reset()
+    {
+        base.Reset(); // Is there anything else that should be done here ?
+    }
+
+    protected bool IsDeclaration()
+    {
         bool isDeclaration = true;
 
-		if (this.Context is ONEParser.Basic_statementContext || this.Context is ONEParser.ExpressionContext)
-		{
-			BufferedTokenStream stream = (BufferedTokenStream)TokenStream;
-			int precedingTokenNumber = 0;
+        if (this.Context is ONEParser.Basic_statementContext || this.Context is ONEParser.ExpressionContext)
+        {
+            BufferedTokenStream stream = (BufferedTokenStream)TokenStream;
+            int precedingTokenNumber = 0;
 
-			for (int i = 1; i <= stream.Size; i++)
-			{
-				var token = ((CommonTokenStream)this.InputStream).LT(i); 
-				if (token.Type == ONELexer.NEWLINE || token.Type == ONELexer.ASSIGNMENT || token.Type == ONELexer.LT)
-					break;
+            for (int i = 1; i <= stream.Size; i++)
+            {
+                var token = ((CommonTokenStream)this.InputStream).LT(i);
+                if (token.Type == ONELexer.NEWLINE || token.Type == ONELexer.ASSIGNMENT || token.Type == ONELexer.LT)
+                    break;
 
-		//System.out.print(token.getText());
-				if (token.Type == ONELexer.OPEN_PARENS)
-				{
-		    //System.out.print(" [precedingTokenNumber: " + precedingTokenNumber + "] ");
-					var hiddenChannel = stream.GetHiddenTokensToLeft(token.TokenIndex, Lexer.Hidden);
-					if (hiddenChannel == null && precedingTokenNumber > 0)
-					{
-						isDeclaration = false;
-						break;
-					}
-				}
+                //System.out.print(token.getText());
+                if (token.Type == ONELexer.OPEN_PARENS)
+                {
+                    //System.out.print(" [precedingTokenNumber: " + precedingTokenNumber + "] ");
+                    var hiddenChannel = stream.GetHiddenTokensToLeft(token.TokenIndex, Lexer.Hidden);
+                    if (hiddenChannel == null && precedingTokenNumber > 0)
+                    {
+                        isDeclaration = false;
+                        break;
+                    }
+                }
 
-				precedingTokenNumber++;
-			}
+                precedingTokenNumber++;
+            }
 
-	    //System.out.print(" [isDeclaration: " + isDeclaration + "] ");
-	    //System.out.println();
-		}
+            //System.out.print(" [isDeclaration: " + isDeclaration + "] ");
+            //System.out.println();
+        }
 
-		return isDeclaration;
-	}
+        return isDeclaration;
+    }
 
-	protected bool IsCaseTypeLabel()
-	{
+    protected bool IsCaseTypeLabel()
+    {
         bool isCaseTypeLabel = true;
 
-		if (this.Context is ONEParser.One_switch_labelContext)
-		{
-			var token = ((CommonTokenStream)this.InputStream).LT(2); 
-	    //System.out.print(token.getText());
+        if (this.Context is ONEParser.One_switch_labelContext)
+        {
+            var token = ((CommonTokenStream)this.InputStream).LT(2);
+            //System.out.print(token.getText());
 
-			if (token.Type == ONELexer.OPEN_PARENS)
-				isCaseTypeLabel = false;
+            if (token.Type == ONELexer.OPEN_PARENS)
+                isCaseTypeLabel = false;
 
-	    //System.out.print(" [isCaseTypeLabel: " + isCaseTypeLabel + "] ");
-	    //System.out.println();
-		}
+            //System.out.print(" [isCaseTypeLabel: " + isCaseTypeLabel + "] ");
+            //System.out.println();
+        }
 
-		return isCaseTypeLabel;
-	}
+        return isCaseTypeLabel;
+    }
 
-	protected bool IsImplicitElementAccess()
-	{
+    protected bool IsImplicitElementAccess()
+    {
         bool isImplicitElementAccess = false;
 
-		if (this.Context is ONEParser.Element_access_or_bindingContext)
-		{
-			for (int i = 1; i <= TokenStream.Size; i++)
-			{
-				var token = ((CommonTokenStream)this.InputStream).LT(i);
-				if (token.Type == ONELexer.NEWLINE)
-					break;
+        if (this.Context is ONEParser.Element_access_or_bindingContext)
+        {
+            for (int i = 1; i <= TokenStream.Size; i++)
+            {
+                var token = ((CommonTokenStream)this.InputStream).LT(i);
+                if (token.Type == ONELexer.NEWLINE)
+                    break;
 
-		//System.out.print(token.getText());
-				if (token.Type == ONELexer.ASSIGNMENT)
-				{
-					isImplicitElementAccess = true;
-					break;
-				}
-			}
+                //System.out.print(token.getText());
+                if (token.Type == ONELexer.ASSIGNMENT)
+                {
+                    isImplicitElementAccess = true;
+                    break;
+                }
+            }
 
-	    //System.out.print(" [isImplicitElementAccess: " + isImplicitElementAccess + "] ");
-	    //System.out.println();
-		}
+            //System.out.print(" [isImplicitElementAccess: " + isImplicitElementAccess + "] ");
+            //System.out.println();
+        }
 
-		return isImplicitElementAccess;
-	}
+        return isImplicitElementAccess;
+    }
 
-	protected bool IsCollectionExpression()
-	{
+    protected bool IsCollectionExpression()
+    {
         bool isCollectionExpression = false;
 
-		if (this.Context is ONEParser.ExpressionContext)
-		{
-			isCollectionExpression = ((CommonTokenStream)this.InputStream).LT(-1).Type == ONELexer.ASSIGNMENT || ((CommonTokenStream)this.InputStream).LT(-1).Type == ONELexer.RETURN;
-			if (!isCollectionExpression)
-			{
-				ONEParser.Collection_elementContext collectionParent = (ONEParser.Collection_elementContext)GetCollectionParentNode(this.Context);
-				isCollectionExpression = collectionParent != null;
-			}
+        if (this.Context is ONEParser.ExpressionContext)
+        {
+            isCollectionExpression = ((CommonTokenStream)this.InputStream).LT(-1).Type == ONELexer.ASSIGNMENT || ((CommonTokenStream)this.InputStream).LT(-1).Type == ONELexer.RETURN;
+            if (!isCollectionExpression)
+            {
+                ONEParser.Collection_elementContext collectionParent = (ONEParser.Collection_elementContext)GetCollectionParentNode(this.Context);
+                isCollectionExpression = collectionParent != null;
+            }
 
-	    //System.out.print(" [isCollectionExpression: " + isCollectionExpression + "] ");
-	    //System.out.println();
-		}
+            //System.out.print(" [isCollectionExpression: " + isCollectionExpression + "] ");
+            //System.out.println();
+        }
 
-		return isCollectionExpression;
-	}
+        return isCollectionExpression;
+    }
 
-	protected bool IsElementAccessOrBinding()
-	{
+    protected bool IsElementAccessOrBinding()
+    {
         bool isElementAccessOrBinding = true;
 
-		if (this.Context is ONEParser.ExpressionContext)
-		{
-			isElementAccessOrBinding = ((CommonTokenStream)this.InputStream).LT(-1).Type != ONELexer.IS;
-	    //System.out.print(" [isElementAccessOrBinding: " + isElementAccessOrBinding + "] ");
-	    //System.out.println();
-		}
+        if (this.Context is ONEParser.ExpressionContext)
+        {
+            isElementAccessOrBinding = ((CommonTokenStream)this.InputStream).LT(-1).Type != ONELexer.IS;
+            //System.out.print(" [isElementAccessOrBinding: " + isElementAccessOrBinding + "] ");
+            //System.out.println();
+        }
 
-		return isElementAccessOrBinding;
-	}
+        return isElementAccessOrBinding;
+    }
 
-	protected bool IsDeclarationExpression()
-	{
+    protected bool IsDeclarationExpression()
+    {
         bool isDeclarationExpression = true;
 
-		if (this.Context is ONEParser.ExpressionContext)
-		{
-			ONEParser.Query_clauseContext queryParent = (ONEParser.Query_clauseContext)GetQueryParentNode(this.Context);
-			isDeclarationExpression = queryParent == null && IsDeclaration() && ((CommonTokenStream)this.InputStream).LT(-1).Type != ONELexer.IS;
+        if (this.Context is ONEParser.ExpressionContext)
+        {
+            ONEParser.Query_clauseContext queryParent = (ONEParser.Query_clauseContext)GetQueryParentNode(this.Context);
+            isDeclarationExpression = queryParent == null && IsDeclaration() && ((CommonTokenStream)this.InputStream).LT(-1).Type != ONELexer.IS;
 
-	    //System.out.print(" [isDeclarationExpression: " + isDeclarationExpression + "] ");
-	    //System.out.println();
-		}
+            //System.out.print(" [isDeclarationExpression: " + isDeclarationExpression + "] ");
+            //System.out.println();
+        }
 
-		return isDeclarationExpression;
-	}
+        return isDeclarationExpression;
+    }
 
-	private static ParserRuleContext GetQueryParentNode(ParserRuleContext context)
-	{
-		ParserRuleContext parent = (ParserRuleContext)context.Parent;
-		if (parent != null && !(parent is ONEParser.Query_clauseContext))
-			parent = GetQueryParentNode((ParserRuleContext)parent);
+    private static ParserRuleContext GetQueryParentNode(ParserRuleContext context)
+    {
+        ParserRuleContext parent = (ParserRuleContext)context.Parent;
+        if (parent != null && !(parent is ONEParser.Query_clauseContext))
+            parent = GetQueryParentNode((ParserRuleContext)parent);
 
-		return parent;
-	}
+        return parent;
+    }
 
-	private static ParserRuleContext GetCollectionParentNode(ParserRuleContext context)
-	{
-		ParserRuleContext parent = (ParserRuleContext)context.Parent;
-		if (parent != null && !(parent is ONEParser.Collection_elementContext))
-			parent = GetCollectionParentNode((ParserRuleContext)parent);
+    private static ParserRuleContext GetCollectionParentNode(ParserRuleContext context)
+    {
+        ParserRuleContext parent = (ParserRuleContext)context.Parent;
+        if (parent != null && !(parent is ONEParser.Collection_elementContext))
+            parent = GetCollectionParentNode((ParserRuleContext)parent);
 
-		return parent;
-	}
+        return parent;
+    }
 }
